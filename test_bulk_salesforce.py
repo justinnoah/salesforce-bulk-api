@@ -7,6 +7,8 @@
 
 from __future__ import unicode_literals, with_statement
 
+from contextlib import contextmanager
+import os
 import re
 try:
     from unittest import mock
@@ -16,10 +18,92 @@ except ImportError:
 import pytest
 import requests
 
+import salesforce_bulk_api
 from salesforce_bulk_api import (bulk_response_attribute,
                                  chunked,
                                  itercsv,
                                  SalesforceBulkJob)
+
+
+@contextmanager
+def override_environment(**kwargs):
+    """Overrides the specified environment variables for the duration of the
+    scope it's used in"""
+    overridden = {}
+    for key, value in kwargs.items():
+        overridden[key] = os.environ.get(key)
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
+
+    yield
+
+    for key, value in overridden.items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
+
+
+def test_salesforce_connection_sandbox_omitted():
+    environment = {
+        'SALESFORCE_USERNAME': 'testsalesforceuser',
+        'SALESFORCE_PASSWORD': 'password123',
+        'SALESFORCE_SECURITY_TOKEN': 'token123',
+        'SALESFORCE_INSTANCE': 'foo.example.com'
+    }
+    with override_environment(**environment), \
+         mock.patch('salesforce_bulk_api.Salesforce') as Salesforce:
+
+        session = salesforce_bulk_api.salesforce_session()
+        assert session == Salesforce.return_value
+        Salesforce.assert_called_with(username='testsalesforceuser',
+                                      password='password123',
+                                      security_token='token123',
+                                      instance='foo.example.com',
+                                      sandbox=False,
+                                      sf_version='34.0')
+
+def test_salesforce_connection_sandbox():
+    environment = {
+        'SALESFORCE_USERNAME': 'testsalesforceuser',
+        'SALESFORCE_PASSWORD': 'password123',
+        'SALESFORCE_SECURITY_TOKEN': 'token123',
+        'SALESFORCE_INSTANCE': 'foo.example.com',
+        'SALESFORCE_SANDBOX': 'True'
+    }
+    with override_environment(**environment), \
+         mock.patch('salesforce_bulk_api.Salesforce') as Salesforce:
+
+        session = salesforce_bulk_api.salesforce_session()
+        assert session == Salesforce.return_value
+        Salesforce.assert_called_with(username='testsalesforceuser',
+                                      password='password123',
+                                      security_token='token123',
+                                      instance='foo.example.com',
+                                      sandbox=True,
+                                      sf_version='34.0')
+
+def test_salesforce_connection_not_sandbox():
+    environment = {
+        'SALESFORCE_USERNAME': 'testsalesforceuser',
+        'SALESFORCE_PASSWORD': 'password123',
+        'SALESFORCE_SECURITY_TOKEN': 'token123',
+        'SALESFORCE_INSTANCE': 'foo.example.com',
+        'SALESFORCE_SANDBOX': 'False'
+    }
+    with override_environment(**environment), \
+         mock.patch('salesforce_bulk_api.Salesforce') as Salesforce:
+
+        session = salesforce_bulk_api.salesforce_session()
+        assert session == Salesforce.return_value
+        Salesforce.assert_called_with(username='testsalesforceuser',
+                                      password='password123',
+                                      security_token='token123',
+                                      instance='foo.example.com',
+                                      sandbox=False,
+                                      sf_version='34.0')
 
 
 class XMLMatcher(object):

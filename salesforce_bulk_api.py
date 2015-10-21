@@ -1,5 +1,5 @@
 # encoding: utf-8
-# 
+#
 # Copyright (c) 2015 Safari Books Online. All rights reserved.
 #
 # This software may be modified and distributed under the terms
@@ -18,10 +18,12 @@ except ImportError:
         from io import StringIO
 from itertools import chain
 import logging
-from xml.etree import ElementTree
+import os
 import time
+from xml.etree import ElementTree
 
 import requests
+from simple_salesforce import Salesforce
 
 logger = logging.getLogger('salesforce-bulk-api')
 
@@ -34,7 +36,7 @@ def salesforce_session():
                       password=os.environ['SALESFORCE_PASSWORD'],
                       security_token=os.environ['SALESFORCE_SECURITY_TOKEN'],
                       instance=os.environ['SALESFORCE_INSTANCE'],
-                      sandbox=os.environ['SALESFORCE_SANDBOX'] == 'True',
+                      sandbox=os.environ.get('SALESFORCE_SANDBOX') == 'True',
                       sf_version='34.0')
 
 
