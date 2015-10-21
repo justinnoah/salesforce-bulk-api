@@ -1,0 +1,7 @@
+__pycache__
+.cache
+.tox
+build
+dist
+salesforce_bulk_api.egg-info/
+*.pyc
