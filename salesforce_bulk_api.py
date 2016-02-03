@@ -37,7 +37,7 @@ def salesforce_session():
                       security_token=os.environ['SALESFORCE_SECURITY_TOKEN'],
                       instance=os.environ['SALESFORCE_INSTANCE'],
                       sandbox=os.environ.get('SALESFORCE_SANDBOX') == 'True',
-                      sf_version='34.0')
+                      version='34.0')
 
 
 class SalesforceBulkJob:
