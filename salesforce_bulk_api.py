@@ -277,6 +277,6 @@ def itercsv(headers, data):
     for row in chain([headers], data):
         writer.writerow(row)
         buffer.seek(0)
-        yield str(unicode(buffer.read()).encode('utf-8'))
+        yield buffer.read()
         buffer.truncate(0)
         buffer.seek(0)
